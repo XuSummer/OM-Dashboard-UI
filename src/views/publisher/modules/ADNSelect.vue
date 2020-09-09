@@ -8,11 +8,10 @@
       placeholder="Ad Network"
       :size="size"
       :disabled="disabled"
-      :allowClear="true"
       optionLabelProp="title"
-      v-decorator="[name, {initialValue: initValue, rules: [{ required: true, message: 'Ad Network can not be empty.' }]}]"
+      v-decorator="[name, {initialValue: initValue, rules: [{ required: true, message: this.$msg('instance.adn_empty') }]}]"
       @change="handleChange">
-      <a-select-option v-for="adn in optionList" :key="adn.id" :title="adn.className">
+      <a-select-option v-for="adn in optionList" :key="adn.id" :disabled="!adn.adNetworkAppId" :title="adn.className">
         <div class="selected-app-small">
           <a-badge :status="adn.adNetworkAppId ? 'success':'default'" /><img style="height:24px;" :src="'/logo/'+adn.className + '.svg'">
         </div>
@@ -20,16 +19,14 @@
     </a-select>
     <a-select
       v-else
-      showSearch
       :style="{ width: width }"
       placeholder="Ad Network"
       :size="size"
       :disabled="disabled"
-      :allowClear="true"
       optionLabelProp="title"
-      v-decorator="[name, {rules: [{ required: true, message: 'Ad Network can not be empty.' }]}]"
+      v-decorator="[name, {rules: [{ required: true, message: this.$msg('instance.adn_empty') }]}]"
       @change="handleChange">
-      <a-select-option v-for="adn in optionList" :key="adn.id" :title="adn.className">
+      <a-select-option v-for="adn in optionList" :key="adn.id" :disabled="!adn.adNetworkAppId" :title="adn.className">
         <div class="selected-app-small">
           <a-badge :status="adn.adNetworkAppId ? 'success':'default'" /><img style="height:24px;" :src="'/logo/'+adn.className + '.svg'">
         </div>
@@ -40,7 +37,6 @@
 
 <script>
 import { adNetworkSelectList } from '@/api/mediation'
-
 export default {
   name: 'ADNSelect',
   props: {
@@ -63,6 +59,10 @@ export default {
     disabled: {
       type: Boolean,
       default: false
+    },
+    placementId: {
+      type: Number,
+      default: null
     }
   },
   data () {
@@ -77,7 +77,11 @@ export default {
     },
     async updateSelectList () {
       try {
-        const res = await adNetworkSelectList({ pubAppId: this.$store.state.publisher.searchApp })
+        const params = { pubAppId: this.$store.state.publisher.searchApp }
+        if (this.placementId) {
+          params.placementId = this.placementId
+        }
+        const res = await adNetworkSelectList(params)
         this.optionList = res.data
       } catch (e) {
         console.log('get adn list error', e)
